@@ -1,33 +1,21 @@
 
-from flask import Flask
-from markupsafe import escape
+import flask
 
-app = Flask(__name__)
+import api.route.home
+import api.route.hello
+import api.route.fibo
 
-@app.route('/')
-def index():
-    return '<h1>Index Page</h1>'
+def create_app():
+    # create and configure the app
+    app = flask.Flask(__name__)
 
-@app.route('/hello/<name>')
-def hello(name):
-    return f'<h1>Hello, {escape(name)}!</h1>'
+    app.register_blueprint(api.route.home.api)
+    app.register_blueprint(api.route.hello.api)
+    app.register_blueprint(api.route.fibo.api)
 
-@app.get('/fibo/<int:num>')
-def fibo(num):
-    a = 0
-    b = 1
-    output = None
-    if num < 0:
-        output = 'Incorrect input'
-    elif num == 0:
-        output = a
-    elif num == 1:
-        output = b
-    else:
-        for i in range(2, num+1):
-            c = a + b
-            a = b
-            b = c
-        output = b
+    return app
 
-    return f'<h1>Fibonacci({escape(num)}) = {output}</h1>'
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run()
