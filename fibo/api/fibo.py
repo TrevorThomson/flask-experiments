@@ -2,7 +2,7 @@
 from flask import Blueprint
 from markupsafe import escape
 
-from api.model.fibo import Fibonacci
+from fibo.model.fibo import Fibonacci
 
 api = Blueprint('fibo_api', __name__)
 

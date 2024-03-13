@@ -1,11 +1,11 @@
 
 import unittest
 
-from app import create_app
+from fibo.__main__ import create_service
 
 class TestFibonacci(unittest.TestCase):
     def setUp(self) -> None:
-        app = create_app()
+        app = create_service()
         app.testing = True
         self.app = app.test_client()
 
