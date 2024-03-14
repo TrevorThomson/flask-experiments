@@ -1,7 +1,7 @@
 
 import unittest
 
-from api.model.fibo import Fibonacci
+from fibo.model.fibo import Fibonacci
 
 class TestFibonacci(unittest.TestCase):
     def setUp(self) -> None:
