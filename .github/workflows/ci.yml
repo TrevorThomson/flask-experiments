@@ -1,0 +1,39 @@
+
+name: Fibo Service CI/CD
+
+on:
+    workflow_dispatch:
+    push:
+
+permissions: read-all
+
+concurrency:
+    group: '${{ github.workflow }}-${{ github.ref }}'
+    cancel-in-progress: true
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Model unit tests
+              run: |
+                python --version
+                python -m venv .venv
+                source .venv/bin/activate
+                python -m pip install -r requirements.txt
+
+                python -m pip install -e .
+                python -m unittest discover --verbose -s tests
+
+    dockerize:
+        needs: validate
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build docker image
+              run: |
+                echo "Hello, world!"
+                docker --version
