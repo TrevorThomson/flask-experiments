@@ -17,7 +17,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Model unit tests
+            - name: Fibo unittest
               run: |
                 python --version
                 python -m venv .venv
@@ -25,6 +25,7 @@ jobs:
                 python -m pip install -r requirements.txt
 
                 python -m pip install -e .
+                echo "==========================================="
                 python -m unittest discover --verbose -s tests
 
     dockerize:
