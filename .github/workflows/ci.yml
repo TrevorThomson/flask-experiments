@@ -38,6 +38,6 @@ jobs:
               run: |
                 echo "Hello, world!"
                 docker --version
-                docker build -t tgt/fibo:0.1.0 -f DockerFile .
+                docker build -t tgt/fibo:0.1.0 .
 
 
