@@ -1,5 +1,5 @@
 
-name: Fibo Service CI/CD
+name: Fibo Service CI
 
 on:
     push:
