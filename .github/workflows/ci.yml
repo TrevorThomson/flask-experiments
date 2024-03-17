@@ -1,0 +1,62 @@
+
+name: Fibo Service CI/CD
+
+on:
+    push:
+        branches: main
+    pull_request:
+        branches: main
+    workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+    group: '${{ github.workflow }}-${{ github.ref }}'
+    cancel-in-progress: true
+
+jobs:
+    service-validate:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Fibo unittest
+              run: |
+                python --version
+                python -m venv .venv
+                source .venv/bin/activate
+                python -m pip install -r requirements.txt
+
+                python -m pip install -e .
+                echo "==========================================="
+                python -m unittest discover --verbose -s tests
+
+    docker-validate:
+        needs: service-validate
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build docker image
+              run: |
+                docker --version
+                docker build -t test_image .
+            
+            - name: Validate docker image
+              run: |
+                docker image ls
+                docker run --help
+                docker run --detach --name test_container test_image
+                docker container ls
+                docker container stop test_container
+
+    ci-validated:
+        needs:
+            - service-validate
+            - docker-validate
+        runs-on: ubuntu-latest
+        steps:
+            - name: success
+              if: ${{ success() }}
+              run: |
+                echo "### Workflow succeeded!" >> $GITHUB_STEP_SUMMARY

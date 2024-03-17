@@ -1,7 +1,7 @@
 
 import unittest
 
-from fibo.__main__ import create_service
+from fibo import create_service
 
 class TestFibonacci(unittest.TestCase):
     def setUp(self) -> None:
