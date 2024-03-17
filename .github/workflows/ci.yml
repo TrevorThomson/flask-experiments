@@ -40,14 +40,23 @@ jobs:
             - name: Build docker image
               run: |
                 docker --version
-                docker build . -t test_image
+                docker build -t test_image .
             
             - name: Validate docker image
               run: |
                 docker image ls
-                docker run test_image --detach --name test_container
+                docker run --help
+                docker run --detach --name test_container test_image
                 docker container ls
                 docker container stop test_container
 
-       
-
+    ci-validated:
+        needs:
+            - service-validate
+            - docker-validate
+        runs-on: ubuntu-latest
+        steps:
+            - name: success
+              if: ${{ success() }}
+              run: |
+                echo "### Workflow succeeded!" >> $GITHUB_STEP_SUMMARY
