@@ -45,10 +45,14 @@ jobs:
             - name: Validate docker image
               run: |
                 docker image ls
-                docker run --help
-                docker run --detach --name test_container test_image
-                docker container ls
+                docker run -p 127.0.0.1:5031:443 --detach --name test_container test_image
+                curl --fail localhost:5031/fibo
+
+            - name: Stop the container
+              if: ${{ always() }}
+              run: |
                 docker container stop test_container
+                docker container prune
 
     ci-validated:
         needs:
