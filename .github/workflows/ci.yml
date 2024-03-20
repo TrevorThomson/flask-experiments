@@ -47,25 +47,23 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/fiboservice:test
-      
-      # - name: Validate docker image
-      #   run: |
-      #     docker run -p 127.0.0.1:5031:443 --detach --name test_container test_image
-      #     docker container ls | grep test_container
-
-      # - name: Stop the container
-      #   if: ${{ always() }}
-      #   run: |
-      #     docker container stop test_container
-      #     docker container prune --force
-
+          tags: tgthomson/fiboservice:test
+  
   docker-validate:
     needs: docker-build-push
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
+    services:
+      fibo:
+        image: tgthomson/fiboservice:test
+        ports:
+          - 8080:80
     steps:
-      - name: pass
-        run: echo "pass"
+      - name: Test service endpoint
+        run: |
+          ## test sleeping before connecting, 'cause the service is just starting...
+          sleep 5
+          docker container ls
+          curl -v http://localhost:8080/fibo/9
 
   ci-validated:
     needs:
