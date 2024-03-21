@@ -1,65 +1,99 @@
 
 name: Fibo Service CI
+##
+## Validate the service via unittests and verify the service runs within docker.defaults:
+## During PR, tag the image with the branch name
+## On main, push the image as "latest"
 
 on:
-    push:
-        branches: main
-    pull_request:
-        branches: main
-    workflow_dispatch:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+  workflow_dispatch:
 
 permissions: read-all
 
 concurrency:
-    group: '${{ github.workflow }}-${{ github.ref }}'
-    cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
 
 jobs:
-    service-validate:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  compute-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute docker image tag
+        id: out
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
+          else
+            echo "DOCKER_TAG=$(echo ${{ github.ref_name }} | tr '/' '_')" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      docker_tag: ${{ steps.out.outputs.DOCKER_TAG }}
 
-            - name: Fibo unittest
-              run: |
-                python --version
-                python -m venv .venv
-                source .venv/bin/activate
-                python -m pip install -r requirements.txt
+  service-unittests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-                python -m pip install -e .
-                echo "==========================================="
-                python -m unittest discover --verbose -s tests
+      - name: Fibo unittest
+        run: |
+          python --version
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install -r requirements.txt
 
-    docker-validate:
-        needs: service-validate
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+          python -m pip install -e .
+          echo "==========================================="
+          python -m unittest discover --verbose -s tests
 
-            - name: Build docker image
-              run: |
-                docker --version
-                docker build -t test_image .
-            
-            - name: Validate docker image
-              run: |
-                docker run -p 127.0.0.1:5031:443 --detach --name test_container test_image
-                docker container ls | grep test_container
+  service-build-push:
+    needs:
+      - compute-tag
+      - service-unittests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Stop the container
-              if: ${{ always() }}
-              run: |
-                docker container stop test_container
-                docker container prune --force
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    ci-validated:
-        needs:
-            - service-validate
-            - docker-validate
-        runs-on: ubuntu-latest
-        steps:
-            - name: success
-              if: ${{ success() }}
-              run: |
-                echo "### Workflow succeeded!" >> $GITHUB_STEP_SUMMARY
+      - name: Build docker image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: tgthomson/fiboservice:${{ needs.compute-tag.outputs.DOCKER_TAG }}
+  
+  service-validate:
+    needs:
+      - compute-tag
+      - service-build-push
+    runs-on: ubuntu-latest
+    services:
+      fibo:
+        image: tgthomson/fiboservice:${{ needs.compute-tag.outputs.DOCKER_TAG }}
+        ports:
+          - 8080:80
+    steps:
+      - name: Test service endpoint
+        run: |
+          ## sleep before connecting, 'cause the service is just starting...
+          sleep 5
+          docker container ls
+          curl -v http://localhost:8080/fibo/9
+
+  ci-validated:
+    needs:
+      - service-unittests
+      - service-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: success
+        if: ${{ success() }}
+        run: |
+          echo "### Workflow succeeded!" >> $GITHUB_STEP_SUMMARY
