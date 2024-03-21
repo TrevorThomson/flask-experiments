@@ -1,5 +1,9 @@
 
 name: Fibo Service CI
+##
+## Validate the service via unittests and verify the service runs within docker.defaults:
+## During PR, tag the image with the branch name
+## On main, push the image as "latest"
 
 on:
   push:
@@ -15,7 +19,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  service-validate:
+  compute-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute docker image tag
+        id: out
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "DOCKER_TAG=latest" >> $GITHUB_OUTPUT
+          else
+            echo "DOCKER_TAG=$(echo ${{ github.ref_name }} | tr '/' '_')" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      docker_tag: ${{ steps.out.outputs.DOCKER_TAG }}
+
+  service-unittests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,8 +49,10 @@ jobs:
           echo "==========================================="
           python -m unittest discover --verbose -s tests
 
-  docker-build-push:
-    needs: service-validate
+  service-build-push:
+    needs:
+      - compute-tag
+      - service-unittests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,28 +67,30 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: tgthomson/fiboservice:test
+          tags: tgthomson/fiboservice:${{ needs.compute-tag.outputs.DOCKER_TAG }}
   
-  docker-validate:
-    needs: docker-build-push
+  service-validate:
+    needs:
+      - compute-tag
+      - service-build-push
     runs-on: ubuntu-latest
     services:
       fibo:
-        image: tgthomson/fiboservice:test
+        image: tgthomson/fiboservice:${{ needs.compute-tag.outputs.DOCKER_TAG }}
         ports:
           - 8080:80
     steps:
       - name: Test service endpoint
         run: |
-          ## test sleeping before connecting, 'cause the service is just starting...
+          ## sleep before connecting, 'cause the service is just starting...
           sleep 5
           docker container ls
           curl -v http://localhost:8080/fibo/9
 
   ci-validated:
     needs:
+      - service-unittests
       - service-validate
-      - docker-validate
     runs-on: ubuntu-latest
     steps:
       - name: success
