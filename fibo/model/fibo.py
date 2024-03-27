@@ -1,9 +1,20 @@
 
+'''
+class Fibonacci
+Usage:
+    fibo = Fibonacci()
+    sum = fibo.sum(f)
+    series = fibo.series(f)
+'''
+
 class Fibonacci:
     def __init__(self) -> None:
         pass
 
     def series(self, f):
+        '''
+        Build and return the Fibonacci series to f
+        '''
         if f < 0:
             raise ValueError('Input must be >= 0')
         
@@ -26,5 +37,8 @@ class Fibonacci:
         return output
 
     def sum(self, f):
+        '''
+        Compute the sum of the Fibonacci series to f
+        '''
         return sum(self.series(f))
     

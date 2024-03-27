@@ -12,3 +12,4 @@ Fibo service
 - Service in fibo/service.py
 - Containerized in Dockerfile
 - Orchestrated in kubernetes/
+  - tested in minikube

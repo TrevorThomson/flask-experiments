@@ -1,3 +1,8 @@
+'''
+Define the home/ endpoint
+Usage:
+    <url>/home
+'''
 
 from flask import Blueprint
 

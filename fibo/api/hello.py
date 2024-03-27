@@ -1,3 +1,8 @@
+'''
+Define the hello/ endpoint
+Usage:
+    <url>/hello/<name>
+'''
 
 from flask import Blueprint
 from markupsafe import escape

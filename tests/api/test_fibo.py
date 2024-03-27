@@ -1,10 +1,12 @@
 
 import unittest
 
+# testing how gunicorn will import the service
 from fibo import create_service
 
 class TestFibonacci(unittest.TestCase):
     def setUp(self) -> None:
+        # testing how gunicorn wil construct the service
         app = create_service()
         app.testing = True
         self.app = app.test_client()
