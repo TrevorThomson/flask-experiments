@@ -1,3 +1,8 @@
+'''
+Define the fibo/ endpoint
+Usage:
+    <url>/fibo/<int>
+'''
 
 from flask import Blueprint
 from markupsafe import escape

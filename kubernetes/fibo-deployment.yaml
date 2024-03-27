@@ -1,0 +1,21 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fibo
+spec:
+  selector:
+    matchLabels:
+      app: fibo
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: fibo
+    spec:
+      containers:
+      - name: fibo
+        image: tgthomson/fiboservice:latest
+        ports:
+        - containerPort: 80
+          name: fibo-port
