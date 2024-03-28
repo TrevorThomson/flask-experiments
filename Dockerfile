@@ -10,9 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-# Install pip requirements
-COPY requirements.txt .
-RUN python -m pip install -r requirements.txt
+# Install pip requirements before installing app since requirements are less likely to change
+COPY fibo/requirements.txt .
+RUN python -m pip install -r ./requirements.txt
 
 WORKDIR /app
 COPY fibo /app/fibo
