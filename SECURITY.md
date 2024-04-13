@@ -7,4 +7,6 @@
 | N/A     | :x:                |
 
 ## Reporting a Vulnerability
-https://github.com/TrevorThomson/fibo-service/issues
+We have enabled private vulnerability reporting.  Please see guidance, here:
+https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+
